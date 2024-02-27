@@ -22,7 +22,8 @@ func main() {
         fatal(err)
     }
 
-    quizgame.AskQuiz(q)
+    score := quizgame.AskQuiz(q)
+	fmt.Printf("Quiz done! Score: %d/%d\n", score, len(q))
 }
 
 func fatal(err error) {

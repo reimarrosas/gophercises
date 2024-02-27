@@ -46,9 +46,9 @@ func ConvertToQuiz(rqd rawQuizData) (Quiz, error) {
 	var res Quiz
 
 	for _, l := range rqd {
-        if len(l) != 2 {
-            return nil, ErrMalformedQuizCSV
-        }
+		if len(l) != 2 {
+			return nil, ErrMalformedQuizCSV
+		}
 
 		q, a := l[0], l[1]
 		res = append(res, quizLine{q, a})
@@ -57,7 +57,7 @@ func ConvertToQuiz(rqd rawQuizData) (Quiz, error) {
 	return res, nil
 }
 
-func askQuiz(q Quiz, r io.Reader, w io.Writer) {
+func askQuiz(q Quiz, r io.Reader, w io.Writer) uint {
 	s := bufio.NewScanner(r)
 	var score uint
 
@@ -72,9 +72,9 @@ func askQuiz(q Quiz, r io.Reader, w io.Writer) {
 		}
 	}
 
-    fmt.Fprintf(w, "Quiz done! Score: %d/%d\n", score, len(q))
+    return score
 }
 
-func AskQuiz(q Quiz) {
-    askQuiz(q, os.Stdin, os.Stdout)
+func AskQuiz(q Quiz) uint {
+	return askQuiz(q, os.Stdin, os.Stdout)
 }
