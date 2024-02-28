@@ -7,17 +7,18 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sync"
+	"time"
 )
 
-// Read File
-// Display Quiz line by line
-// Prompt user answer by line
-// Tally correct answers
-// Display score
+var (
+	ErrCannotOpenCSV    = errors.New("cannot open csv file")
+	ErrCannotReadCSV    = errors.New("cannot read csv file")
+	ErrMalformedQuizCSV = errors.New("malformed quiz csv")
+	ErrTimerRanOut      = errors.New("timer ran out")
+)
 
-var ErrCannotOpenCSV = errors.New("cannot open csv file")
-var ErrCannotReadCSV = errors.New("cannot read csv file")
-var ErrMalformedQuizCSV = errors.New("malformed quiz csv")
+var m sync.Mutex
 
 type rawQuizData [][]string
 
@@ -57,24 +58,40 @@ func ConvertToQuiz(rqd rawQuizData) (Quiz, error) {
 	return res, nil
 }
 
-func askQuiz(q Quiz, r io.Reader, w io.Writer) uint {
+func askQuiz(q Quiz, d time.Duration, r io.Reader, w io.Writer) (uint, error) {
 	s := bufio.NewScanner(r)
 	var score uint
 
+	a := make(chan string)
+	defer close(a)
+
+	t := time.NewTicker(d)
+	defer t.Stop()
+
 	for _, l := range q {
-		fmt.Fprintf(w, "%s: ", l.Question)
+		go func(a chan string, s *bufio.Scanner, w io.Writer) {
+			fmt.Fprintf(w, "%s: ", l.Question)
 
-		s.Scan()
-		a := s.Text()
+            m.Lock()
+			for s.Scan() {
+                a <- s.Text()
+            }
+            m.Unlock()
+		}(a, s, w)
 
-		if a == l.Answer {
-			score++
+		select {
+		case d := <-a:
+			if d == l.Answer {
+				score++
+			}
+		case <-t.C:
+			return score, ErrTimerRanOut
 		}
 	}
 
-    return score
+	return score, nil
 }
 
-func AskQuiz(q Quiz) uint {
-	return askQuiz(q, os.Stdin, os.Stdout)
+func AskQuiz(q Quiz, d time.Duration) (uint, error) {
+	return askQuiz(q, d, os.Stdin, os.Stdout)
 }

@@ -3,6 +3,7 @@ package quizgame
 import (
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestConvertToQuiz(t *testing.T) {
@@ -34,13 +35,15 @@ func TestConvertToQuiz(t *testing.T) {
 }
 
 func TestAskQuiz(t *testing.T) {
+	d := time.Duration(30 * time.Second)
+
 	t.Run("successfully answer the question", func(t *testing.T) {
 		input := [][]string{{"2+2", "4"}}
 		q, _ := ConvertToQuiz(input)
 		var sb strings.Builder
 		r := strings.NewReader("4\n")
 
-		got := askQuiz(q, r, &sb)
+		got, _ := askQuiz(q, d, r, &sb)
 		var want uint = 1
 
 		if got != want {
@@ -54,11 +57,25 @@ func TestAskQuiz(t *testing.T) {
 		var sb strings.Builder
 		r := strings.NewReader("5\n")
 
-		got := askQuiz(q, r, &sb)
+		got, _ := askQuiz(q, d, r, &sb)
 		var want uint = 0
 
 		if got != want {
 			t.Errorf("expected %d, got %d", want, got)
+		}
+	})
+
+	t.Run("timer runs out", func(t *testing.T) {
+		d := time.Duration(time.Second)
+		input := [][]string{{"2+2", "4"}}
+		q, _ := ConvertToQuiz(input)
+		var sb strings.Builder
+		r := strings.NewReader("")
+
+		_, got := askQuiz(q, d, r, &sb)
+
+		if got != ErrTimerRanOut {
+			t.Errorf("expected %v, got %v", ErrTimerRanOut, got)
 		}
 	})
 }
