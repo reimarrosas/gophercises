@@ -69,7 +69,7 @@ func HandleRedirect(w http.ResponseWriter, r *http.Request) {
 			code = http.StatusBadRequest
 		case sql.ErrNoRows:
 			code = http.StatusNotFound
-			errMsg = "URL not found"
+			errMsg = "Path not mapped to a URL"
 		default:
 			code = http.StatusInternalServerError
 			errMsg = "Internal Server Error"

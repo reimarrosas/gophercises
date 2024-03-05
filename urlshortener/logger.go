@@ -24,7 +24,6 @@ func (lrw *loggedResponseWriter) Header() http.Header {
 }
 
 func (lrw *loggedResponseWriter) Write(buf []byte) (int, error) {
-	lrw.statusCode = 200
 	return lrw.rw.Write(buf)
 }
 
@@ -57,14 +56,14 @@ func InitLogger(filepath string) error {
 
 func LoggerMiddleware(f http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-        s := time.Now()
+		s := time.Now()
 
 		lrw := loggedResponseWriter{rw: w}
 		f.ServeHTTP(&lrw, r)
 
-        d := time.Since(s)
+		d := time.Since(s)
 
-        code, text := lrw.statusCode, http.StatusText(lrw.statusCode)
+		code, text := lrw.statusCode, http.StatusText(lrw.statusCode)
 		InfoLog.Printf("%s %s %d %s - %s", r.Method, r.URL.Path, code, text, d)
 	}
 }

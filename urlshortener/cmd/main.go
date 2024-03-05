@@ -21,7 +21,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /{hash}", urlshortener.HandleRedirect)
-	mux.HandleFunc("POST /", urlshortener.HandlePost)
+	mux.HandleFunc("POST /{$}", urlshortener.HandlePost)
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(urlshortener.ResponseMessage[any]{
@@ -33,7 +33,7 @@ func main() {
 		mux.ServeHTTP,
 		urlshortener.SecurityHeaders,
 		urlshortener.JsonContent,
-		urlshortener.LoggerMiddleware,
+        urlshortener.LoggerMiddleware,
 	)
 
 	log.Fatal(http.ListenAndServe(port, handler))
