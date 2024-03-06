@@ -109,8 +109,9 @@ func HandlePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusCreated)
 	e.Encode(ResponseMessage[Shortener]{
-        Message: "Shortener creation successful",
-        Data: s,
-    })
+		Message: "Shortener creation successful",
+		Data:    s,
+	})
 }
